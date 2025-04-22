@@ -9,7 +9,8 @@ def main():
     get_wordlbank_data()
     get_countryeconomy_data()
     get_allianz_data()
-    get_tradingeconomics_data()
+    
+    #get_tradingeconomics_data()
 
 if __name__ == "__main__":
     main()

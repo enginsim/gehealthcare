@@ -27,6 +27,7 @@ def get_countries():
 
 def get_country_ratings(country_name):
     #e.g. https://countryeconomy.com/ratings/usa
+    url = 'https://countryeconomy.com/ratings/' + country_name.lower()
     print(f'getting {country_name} ratings')
     
 def get_countryeconomy_data():

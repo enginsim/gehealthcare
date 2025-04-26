@@ -1,3 +1,3 @@
 
-def get_wordlbank_data():
+def get_worldbank_data():
     print('getting worldbank data...')

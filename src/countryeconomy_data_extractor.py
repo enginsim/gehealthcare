@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import time
 
 def get_countries():
     url = 'https://countryeconomy.com/countries'
@@ -26,6 +27,7 @@ def get_countries():
     return countries
 
 def get_country_ratings(country_name):
+    print(country_name)
     #e.g. https://countryeconomy.com/ratings/usa
     url = 'https://countryeconomy.com/ratings/'
 
@@ -75,4 +77,9 @@ def get_country_ratings(country_name):
 
     
 def get_countryeconomy_data():
-    print('getting countryeconomy data...')
+    countries = get_countries()
+
+    for i, (country_name, url) in enumerate(countries):
+        print(f"{i+1}/{len(countries)} - Fetching ratings for {country_name}...")
+        get_country_ratings(country_name)
+        time.sleep(1.5) #Sleep between requests to avoid overloading the server 

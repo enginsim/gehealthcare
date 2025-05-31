@@ -7,8 +7,8 @@ from src.countryeconomy_data_extractor import get_country_ratings
 
 def main():
     #get_oecd_data()
-    get_worldbank_data()
-    #get_countryeconomy_data()
+    #get_worldbank_data()
+    get_countryeconomy_data()
     #get_allianz_data()
     #get_country_ratings()
     

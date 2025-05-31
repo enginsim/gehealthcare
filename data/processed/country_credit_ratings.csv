@@ -1,0 +1,145 @@
+Country,Moodys_Rating,SP_Rating,Fitch_Rating,Extraction_Date
+United States,Aa1,AA+,AAA,2025-05-31
+United Kingdom,Aa3,AA,AA-,2025-05-31
+Germany,Aaa,AAA,AAA,2025-05-31
+France,Aa3,AA-,AA-,2025-05-31
+Japan,A1,A+,A,2025-05-31
+Spain,Baa1,A,A-,2025-05-31
+Italy,Baa3,BBB+,BBB,2025-05-31
+Portugal,A3,A-,BBB+,2025-05-31
+Greece,Baa3,BBB,BB+,2025-05-31
+Ireland,Aa3,AA,AA-,2025-05-31
+Andorra,N/A,A-,A-,2025-05-31
+United Arab Emirates,Aa2,AA,AA-,2025-05-31
+Albania,Ba3,BB,N/A,2025-05-31
+Armenia,Ba3,BB-,B+,2025-05-31
+Angola,B3,B-,B-,2025-05-31
+Argentina,Caa3,CCC,C,2025-05-31
+Austria,Aa1,AA+,AA+,2025-05-31
+Australia,Aaa,AAA,AAA,2025-05-31
+Azerbaijan,Ba1,BB+,BB+,2025-05-31
+Bosnia and Herzegovina,B3,B+,N/A,2025-05-31
+Barbados,B2,B,B+,2025-05-31
+Bangladesh,B2,B+,BB-,2025-05-31
+Belgium,Aa3,AA,AA-,2025-05-31
+Burkina Faso,N/A,CCC+,N/A,2025-05-31
+Bulgaria,Baa1,BBB,BBB,2025-05-31
+Bahrain,B2,B+,B+,2025-05-31
+Benin,N/A,NR,B+,2025-05-31
+Bolivia,Ca,CCC+,B-,2025-05-31
+Brazil,Ba1,BB,BB-,2025-05-31
+Bahamas,B1,B+,N/A,2025-05-31
+Botswana,A3,BBB+,N/A,2025-05-31
+Belarus,C,NR,RD,2025-05-31
+Belize,Caa1,B-,N/A,2025-05-31
+Canada,Aaa,AAA,AA+,2025-05-31
+Democratic Republic of the Congo,N/A,B-,N/A,2025-05-31
+Republic of the Congo,N/A,CCC+,CCC+,2025-05-31
+Switzerland,Aaa,AAA,AAA,2025-05-31
+Côte d'Ivoire,N/A,BB-,BB-,2025-05-31
+Chile,A2,A,A-,2025-05-31
+Cameroon,N/A,B-,B,2025-05-31
+China,A1,A+,A+,2025-05-31
+Colombia,Baa2,BB+,BB+,2025-05-31
+Costa Rica,Ba3,BB-,BB-,2025-05-31
+Cuba,Ca,N/A,N/A,2025-05-31
+Cabo Verde,N/A,B,B-,2025-05-31
+Cyprus,A3,BBB+,BBB,2025-05-31
+Czechia,Aa3,AA-,AA-,2025-05-31
+Denmark,Aaa,AAA,AAA,2025-05-31
+Dominican Republic,Ba3,BB,BB-,2025-05-31
+Ecuador,Caa3,B-,B-,2025-05-31
+Estonia,A1,A+,AA-,2025-05-31
+Egypt,Caa1,B-,B,2025-05-31
+Ethiopia,N/A,N/A,CCC-,2025-05-31
+Finland,Aa1,AA+,AA+,2025-05-31
+Fiji,B1,B+,N/A,2025-05-31
+Gabon,N/A,NR,B-,2025-05-31
+Grenada,N/A,NR,N/A,2025-05-31
+Georgia,Ba2,BB,BB,2025-05-31
+Ghana,N/A,SD,RD,2025-05-31
+The Gambia,N/A,N/A,CCC,2025-05-31
+Guatemala,Ba1,BB,BB,2025-05-31
+Hong Kong,Aa3,AA+,AA-,2025-05-31
+Honduras,B1,BB-,N/A,2025-05-31
+Croatia,A3,A-,BBB+,2025-05-31
+Hungary,Baa2,BBB-,BBB,2025-05-31
+Indonesia,Baa2,BBB,BBB,2025-05-31
+Israel,Baa1,A,A+,2025-05-31
+India,Baa3,BBB-,BBB-,2025-05-31
+Iraq,N/A,N/A,B-,2025-05-31
+Iran,N/A,N/A,B+,2025-05-31
+Iceland,A1,A+,A,2025-05-31
+Jamaica,B1,BB-,B+,2025-05-31
+Jordan,Ba3,BB-,BB-,2025-05-31
+Kenya,N/A,B-,B,2025-05-31
+Cambodia,B2,B,N/A,2025-05-31
+South Korea,Aa2,AA,AA-,2025-05-31
+Kuwait,A1,A+,AA-,2025-05-31
+Kazakhstan,Baa1,BBB-,BBB,2025-05-31
+Laos,N/A,N/A,CCC-,2025-05-31
+Lebanon,C,SD,RD,2025-05-31
+Liechtenstein,N/A,AAA,N/A,2025-05-31
+Sri Lanka,Caa1,SD,RD,2025-05-31
+Lesotho,N/A,N/A,B,2025-05-31
+Lithuania,A2,A,A,2025-05-31
+Luxembourg,Aaa,AAA,AAA,2025-05-31
+Latvia,A3,A,A-,2025-05-31
+Libya,N/A,N/A,B,2025-05-31
+Morocco,Ba1,BB+,BB+,2025-05-31
+Moldova,B3,N/A,B-,2025-05-31
+Montenegro,Ba3,B+,N/A,2025-05-31
+North Macedonia,N/A,BB-,BB+,2025-05-31
+Mali,N/A,N/A,B-,2025-05-31
+Mongolia,B2,B+,B,2025-05-31
+Malta,A2,A-,A+,2025-05-31
+Mauritius,Baa3,BBB-,N/A,2025-05-31
+Maldives,N/A,N/A,B-,2025-05-31
+Malawi,N/A,N/A,B-,2025-05-31
+Mexico,Baa2,BBB,BBB-,2025-05-31
+Malaysia,A3,A-,BBB+,2025-05-31
+Mozambique,Caa2,CCC+,CCC+,2025-05-31
+Namibia,B1,N/A,BB-,2025-05-31
+Nigeria,N/A,B-,B-,2025-05-31
+Nicaragua,B2,B,B-,2025-05-31
+Netherlands,Aaa,AAA,AAA,2025-05-31
+Norway,Aaa,AAA,AAA,2025-05-31
+New Zealand,Aaa,AA+,AA+,2025-05-31
+Oman,Ba1,BBB-,BB,2025-05-31
+Panama,Baa3,BBB-,BBB-,2025-05-31
+Peru,Baa1,BBB-,BBB,2025-05-31
+Papua New Guinea,B2,B-,B+,2025-05-31
+Philippines,Baa2,BBB+,BBB,2025-05-31
+Pakistan,Caa2,CCC+,CCC-,2025-05-31
+Poland,A2,A-,A-,2025-05-31
+Paraguay,Baa3,BB+,BB+,2025-05-31
+Qatar,Aa2,AA,AA-,2025-05-31
+Romania,Baa3,BBB-,BBB-,2025-05-31
+Serbia,N/A,BBB-,BB+,2025-05-31
+Russia,Ca,CC,C,2025-05-31
+Rwanda,N/A,B+,B+,2025-05-31
+Saudi Arabia,Aa3,A+,A+,2025-05-31
+Seychelles,N/A,N/A,BB-,2025-05-31
+Sweden,Aaa,AAA,AAA,2025-05-31
+Singapore,Aaa,AAA,AAA,2025-05-31
+Slovenia,A3,AA-,A,2025-05-31
+Slovakia,A3,A+,A,2025-05-31
+San Marino,N/A,N/A,BB,2025-05-31
+Senegal,B3,B+,N/A,2025-05-31
+Suriname,Caa1,CCC+,RD,2025-05-31
+El Salvador,B3,B-,RD,2025-05-31
+Thailand,Baa1,BBB+,BBB+,2025-05-31
+Turkmenistan,N/A,N/A,CCC-,2025-05-31
+Tunisia,Caa1,NR,CCC+,2025-05-31
+Türkiye,B1,BB-,B,2025-05-31
+Trinidad and Tobago,Ba2,BBB-,N/A,2025-05-31
+Taiwan,Aa3,AA+,AA,2025-05-31
+Ukraine,Ca,SD,CC,2025-05-31
+Uganda,N/A,B-,B+,2025-05-31
+Uruguay,Baa1,BBB+,BBB-,2025-05-31
+Uzbekistan,N/A,BB-,BB-,2025-05-31
+Saint Vincent and the Grenadines,B3,N/A,N/A,2025-05-31
+Venezuela,C,B-,N/A,2025-05-31
+Viet Nam,N/A,N/A,BB,2025-05-31
+South Africa,Ba2,BB-,BB-,2025-05-31
+Zambia,N/A,SD,RD,2025-05-31

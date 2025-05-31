@@ -301,7 +301,7 @@ class OECDDataFetcher:
         return self.fetch_data_from_api(debt_url, "Debt Securities (Quarterly)")
 
 # Main execution
-if __name__ == "__main__":
+def get_oecd_data():
     fetcher = OECDDataFetcher()
     
     print("=== OECD Economic Data Fetcher - GitHub Project Integration ===")

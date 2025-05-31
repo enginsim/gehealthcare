@@ -46,19 +46,26 @@ def download_pdf_with_selenium(pdf_url, download_folder="data/raw"):
 def extract_pdf_to_csv(pdf_path, output_csv):
     all_tables = []
     #TODO: Clean the data before saving to csv file
-    with pdfplumber.open(pdf_path) as pdf:
-        for i, page in enumerate(pdf.pages):
-            tables = page.extract_tables()
-            for table in tables:
-                if table:
-                    df = pd.DataFrame(table[1:], columns=table[0])
-                    all_tables.append(df)
-                    
+    data = []
 
-    if all_tables:
-        df = pd.concat(all_tables, ignore_index=True)
-        os.makedirs(os.path.dirname(output_csv), exist_ok=True)
-        df.to_csv(output_csv, index=False)
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text()
+            if text:
+                lines = text.split('\n')
+                for line in lines:
+                    if line.strip().startswith("Country") or "Allianz" in line or "Review" in line:
+                        continue  # Skip headers
+                    parts = line.split()
+                    if len(parts) >= 4:
+                        country = ' '.join(parts[:-3])
+                        mid_rating = parts[-3]
+                        short_rating = parts[-2]
+                        level = parts[-1].strip("()")
+                        data.append([country, mid_rating, short_rating, level])
+
+    df = pd.DataFrame(data, columns=["Country", "Medium-Term Rating", "Short-Term Rating", "Risk Level"])
+    df.to_csv(output_csv, index=False)
         
 
 
@@ -114,6 +121,6 @@ def get_allianz_data():
             download_pdf_with_selenium(pdf_url, download_folder="data/raw")
             extract_pdf_to_csv(pdf_path, output_csv)
             time.sleep(2)
-        except:
-            print('An error occured')
-            continue
+        except Exception as e:
+            print(f'An error occured  {e}')
+            break

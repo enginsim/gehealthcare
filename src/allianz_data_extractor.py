@@ -10,6 +10,9 @@ import pdfplumber
 import pandas as pd
 import os
 import time
+import mysql.connector
+
+from .db_config import db_config, db_name
 
 def get_previous_quarter(date=None):
     if date is None:
@@ -43,30 +46,54 @@ def download_pdf_with_selenium(pdf_url, download_folder="data/raw"):
 
     driver.quit()
 
-def extract_pdf_to_csv(pdf_path, output_csv):
-    all_tables = []
-    #TODO: Clean the data before saving to csv file
+def extract_pdf_to_mysql(pdf_path, db_config, db_name, table_name="allianz_data", year_quarter="2025Q2"):
     data = []
 
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            text = page.extract_text()
-            if text:
-                lines = text.split('\n')
-                for line in lines:
-                    if line.strip().startswith("Country") or "Allianz" in line or "Review" in line:
-                        continue  # Skip headers
-                    parts = line.split()
-                    if len(parts) >= 4:
-                        country = ' '.join(parts[:-3])
-                        mid_rating = parts[-3]
-                        short_rating = parts[-2]
-                        level = parts[-1].strip("()")
-                        data.append([country, mid_rating, short_rating, level])
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    lines = text.split('\n')
+                    for line in lines:
+                        line_clean = line.strip().lower()
+                        if ("country" in line_clean and "rating" in line_clean) or any(word in line_clean for word in ["short-term", "medium-term", "grade", "risk level", "allianz", "review"]):
+                            continue 
+                        parts = line.split()
+                        if len(parts) >= 4:
+                            country = ' '.join(parts[:-3])
+                            mid_rating = parts[-3]
+                            short_rating = parts[-2]
+                            level = parts[-1].strip("()")
+                            data.append((country, mid_rating, short_rating, level, year_quarter))
+    except Exception as e:
+        print(f"Error: {e}")
+        return
 
-    df = pd.DataFrame(data, columns=["Country", "Medium-Term Rating", "Short-Term Rating", "Risk Level"])
-    df.to_csv(output_csv, index=False)
-        
+    conn = None
+    cursor = None
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute(f"USE {db_name}")
+
+        insert_query = f"""
+            INSERT IGNORE INTO {table_name}
+            (country, medium_term_rating, short_term_rating, risk_level, year_quarter)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        cursor.executemany(insert_query, data)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 
 
 def get_allianz_last_available_info():
@@ -111,16 +138,12 @@ def get_allianz_data():
     if prev_quarter not in d:
         d[prev_quarter] = get_allianz_last_available_info()
     
-  
-    for i in d:
+    for year_quarter, (pdf_name, pdf_url) in d.items():
         try:
-            pdf_url = d[i][1]
-            pdf_path = os.path.join("data/raw", d[i][0])
-            output_csv = os.path.join("data/processed", f"allianz_{i}.csv")
-            #TODO:check if the pdf file exists in raw folder, if it does we do not need call the below lines
-            download_pdf_with_selenium(pdf_url, download_folder="data/raw")
-            extract_pdf_to_csv(pdf_path, output_csv)
+            pdf_path = os.path.join("data/raw", pdf_name)
+            if not os.path.exists(pdf_path):
+                download_pdf_with_selenium(pdf_url, download_folder="data/raw")
+            extract_pdf_to_mysql(pdf_path, db_config, db_name, year_quarter=year_quarter)
             time.sleep(2)
         except Exception as e:
-            print(f'An error occured  {e}')
-            break
+            print(f"Error processing {year_quarter}: {e}")

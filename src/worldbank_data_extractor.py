@@ -2,17 +2,19 @@ import os
 import zipfile
 import requests
 import pandas as pd
+from .db_config import db_config, db_name
+import mysql.connector
 
-def extract_file_to_csv(filepath):
+def extract_file_to_mysql(filepath,db_name, table_name="worldbank_data"):
     
     try:
         df = pd.read_excel(filepath)
 
         expected_columns = [
-            'codeindyr', 'code', 'countryname', 'year', 'indicator',
-            'estimate', 'stddev', 'nsource',
-            'pctrank', 'pctranklower', 'pctrankupper'
+            "codeindyr", "code", "countryname", "year", "indicator",
+            "estimate", "stddev", "nsource", "pctrank", "pctranklower", "pctrankupper"
         ]
+
         missing = set(expected_columns) - set(df.columns)
         if missing:
             raise ValueError(f"Missing expected columns: {missing}")
@@ -27,9 +29,36 @@ def extract_file_to_csv(filepath):
 
         df.dropna(subset=['code', 'countryname', 'year', 'indicator', 'estimate'], inplace=True)
         
-        # Save to csv
-        csv_path = filepath.replace("data/raw","data/processed").replace(".xlsx", ".csv")
-        df.to_csv(csv_path, index=False)
+
+
+        # Convert to list of tuples
+        data = [tuple(row) for row in df.itertuples(index=False, name=None)]
+
+        conn = None
+        cursor = None
+
+        try:
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor()
+            cursor.execute(f"USE {db_name}")
+            insert_query = f"""
+                INSERT IGNORE INTO {table_name}
+                (codeindyr, code, countryname, year, indicator,
+                estimate, stddev, nsource, pctrank, pctranklower, pctrankupper)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.executemany(insert_query, data)
+            conn.commit()
+
+        except mysql.connector.Error as err:
+            print(f"[Error] {err}")
+        except Exception as e:
+            print(f"[Error] {e}")
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
         # Delete excel file
         if os.path.exists(filepath):
@@ -59,19 +88,15 @@ def download_and_extract_data(url, extract_to="data/raw"):
         with open(zip_path, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_to)
-
         for filename in os.listdir(extract_to):
             if filename.lower() == "wgidataset.xlsx":
                 excel_path = os.path.join(extract_to, filename)
-                extract_file_to_csv(excel_path)
-
-        raise FileNotFoundError("File not found.")
+                extract_file_to_mysql(excel_path, db_name, table_name="worldbank_data")
     
     except Exception as e:
-        print(f"An error occured: {e}")
+        print(f"An error occured1: {e}")
         return None
 
 def get_worldbank_data():

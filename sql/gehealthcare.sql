@@ -33,7 +33,27 @@ CREATE TABLE IF NOT EXISTS `gehealthcare`.`allianz_data` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `uq_country_quarter` (`country` ASC, `year_quarter` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 724
+AUTO_INCREMENT = 1447
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `gehealthcare`.`countryeconomy_data`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `gehealthcare`.`countryeconomy_data` ;
+
+CREATE TABLE IF NOT EXISTS `gehealthcare`.`countryeconomy_data` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `country` VARCHAR(255) NOT NULL,
+  `rating_agency` VARCHAR(255) NOT NULL,
+  `rating` VARCHAR(255) NOT NULL,
+  `rating_date` DATE NOT NULL,
+  `term_type` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `uq_country_ratingdate` (`country` ASC, `rating_date` DESC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 3663
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -60,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `gehealthcare`.`worldbank_data` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `codeindyr` (`codeindyr` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 123897
+AUTO_INCREMENT = 154871
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 

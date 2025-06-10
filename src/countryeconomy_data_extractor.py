@@ -580,7 +580,7 @@ def get_countryeconomy_detailed_data():
     ratings_df = scraper.scrape_all_countries_from_list()
     
     # Save the data
-    #success = scraper.save_data(ratings_df, "detailed_country_ratings_history")
+    success = scraper.save_data(ratings_df, "detailed_country_ratings_history")
     success = scraper.save_data_to_mysql(ratings_df, db_name, table_name="countryeconomy_data")
     if success:
         print(f"\nSUCCESS: Detailed rating history data extracted!")

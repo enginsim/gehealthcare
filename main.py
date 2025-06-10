@@ -6,11 +6,12 @@ from src.countryeconomy_data_extractor import get_countryeconomy_data
 
 def main():
     #get_oecd_data()
-    get_worldbank_data()
-    #get_countryeconomy_data()
-    get_allianz_data()
-    #get_country_ratings()
+    #get_worldbank_data()
+    get_countryeconomy_data()
+    #get_allianz_data()
+   
     #get_tradingeconomics_data()
+    #get_country_ratings()
 
 if __name__ == "__main__":
     main()

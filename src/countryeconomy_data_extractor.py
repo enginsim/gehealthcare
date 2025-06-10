@@ -5,12 +5,11 @@ import os
 import time
 from datetime import datetime
 import re
+import mysql.connector
+from .db_config import db_config, db_name
 
 class CountryEconomyDetailedScraper:
-    """
-    Scrapes detailed rating history for all countries from countryeconomy.com
-    Navigates through all country pages from Albania to Zambia
-    """
+    
     
     def __init__(self, output_dir=None):
         """
@@ -30,7 +29,7 @@ class CountryEconomyDetailedScraper:
             
         # Create output directory
         os.makedirs(self.output_dir, exist_ok=True)
-        print(f"📁 Output directory: {os.path.abspath(self.output_dir)}")
+        print(f"Output directory: {os.path.abspath(self.output_dir)}")
         
         # Initialize session for consistent cookies
         self.session = requests.Session()
@@ -65,7 +64,7 @@ class CountryEconomyDetailedScraper:
                 full_url = 'https://countryeconomy.com' + href
                 countries.append((country_name, full_url))
         
-        print(f"✅ Found {len(countries)} countries from countries list")
+        print(f"Found {len(countries)} countries from countries list")
         return countries
         
     def get_country_rating_history(self, country_url, country_name=None):
@@ -80,7 +79,7 @@ class CountryEconomyDetailedScraper:
         list: List of rating records for the country
         """
         try:
-            print(f"  📊 Fetching rating history from: {country_url}")
+            print(f"Fetching rating history from: {country_url}")
             response = self.session.get(country_url)
             response.raise_for_status()
             
@@ -96,7 +95,7 @@ class CountryEconomyDetailedScraper:
             # Look for the main rating table
             table = soup.find('table')
             if not table:
-                print(f"    ⚠️  No rating table found for {country_name}")
+                print(f"No rating table found for {country_name}")
                 return []
             
             # Extract data rows (skip header row)
@@ -177,14 +176,14 @@ class CountryEconomyDetailedScraper:
                     # Add all valid records from this row
                     rating_data.extend(records)
             
-            print(f"    ✅ Extracted {len(rating_data)} rating records for {country_name}")
+            print(f"Extracted {len(rating_data)} rating records for {country_name}")
             return rating_data
             
         except requests.RequestException as e:
-            print(f"    ❌ Error fetching {country_url}: {e}")
+            print(f"Error fetching {country_url}: {e}")
             return []
         except Exception as e:
-            print(f"    ⚠️  Error parsing {country_url}: {e}")
+            print(f"Error parsing {country_url}: {e}")
             return []
     
     def clean_rating_text(self, rating_text):
@@ -292,7 +291,7 @@ class CountryEconomyDetailedScraper:
             return None
             
         except Exception as e:
-            print(f"    ⚠️  Error finding next page from {current_url}: {e}")
+            print(f"Error finding next page from {current_url}: {e}")
             return None
     
     def scrape_all_countries_from_list(self, end_country="zambia"):
@@ -306,9 +305,9 @@ class CountryEconomyDetailedScraper:
         pandas.DataFrame: All rating data combined
         """
         print("=== Country Economy Detailed Rating History Scraper ===")
-        print(f"🌍 Getting countries list from /countries page")
-        print(f"🛑 Stopping at: {end_country.title()}")
-        print(f"📂 Output: ../data/processed/")
+        print(f"Getting countries list from /countries page")
+        print(f"Stopping at: {end_country.title()}")
+        print(f"Output: ../data/processed/")
         print()
         
         # Initialize data storage
@@ -317,7 +316,7 @@ class CountryEconomyDetailedScraper:
         # Get countries list
         countries = self.get_countries()
         if not countries:
-            print("❌ Could not get countries list")
+            print("Could not get countries list")
             return pd.DataFrame()
         
         # Create mapping for better country name extraction (initialize here)
@@ -343,7 +342,7 @@ class CountryEconomyDetailedScraper:
             try:
                 country_name, country_url = countries[i]
                 
-                print(f"🌍 [{i + 1}/{end_idx}] Processing: {country_name}")
+                print(f"[{i + 1}/{end_idx}] Processing: {country_name}")
                 
                 # Convert country URL to ratings URL
                 ratings_url = self.create_ratings_url_from_country_url(country_url)
@@ -354,24 +353,24 @@ class CountryEconomyDetailedScraper:
                 
                 # Check if we've reached the end country
                 if country_name.lower().startswith(end_country.lower()):
-                    print(f"🛑 Reached {end_country.title()}! Stopping...")
+                    print(f"Reached {end_country.title()}! Stopping...")
                     break
                 
                 # Be respectful to the server
                 time.sleep(0.5)
                 
             except KeyboardInterrupt:
-                print("\n⏹️  Scraping interrupted by user")
+                print("\nScraping interrupted by user")
                 break
             except Exception as e:
-                print(f"    ❌ Unexpected error processing {country_name}: {e}")
+                print(f"Unexpected error processing {country_name}: {e}")
                 # Continue with next country
                 time.sleep(1)
                 continue
         
-        print(f"\n✅ Scraping completed!")
-        print(f"📊 Countries processed: {i + 1 - start_idx}")
-        print(f"📈 Total rating records collected: {len(all_ratings_data)}")
+        print(f"\nScraping completed!")
+        print(f"Countries processed: {i + 1 - start_idx}")
+        print(f"Total rating records collected: {len(all_ratings_data)}")
         
         # Convert to DataFrame
         if all_ratings_data:
@@ -416,17 +415,17 @@ class CountryEconomyDetailedScraper:
             filepath = os.path.join(self.output_dir, f"{filename}.csv")
             df_filtered.to_csv(filepath, index=False)
             
-            print(f"\n💾 Data saved to: {filepath}")
-            print(f"📊 Data shape: {df_filtered.shape}")
-            print(f"📋 Columns: {list(df_filtered.columns)}")
+            print(f"\nData saved to: {filepath}")
+            print(f"Data shape: {df_filtered.shape}")
+            print(f"Columns: {list(df_filtered.columns)}")
             
             # Show sample data
-            print(f"\n📋 Sample data:")
+            print(f"\nSample data:")
             print(df_filtered.head(10))
             
             # Show statistics
             if not df_filtered.empty:
-                print(f"\n📈 Data Statistics:")
+                print(f"\nData Statistics:")
                 print(f"  • Total rating records: {len(df_filtered)}")
                 print(f"  • Countries covered: {df_filtered['Reference area'].nunique()}")
                 print(f"  • Rating agencies: {', '.join(df_filtered['Rating agency'].unique())}")
@@ -441,13 +440,71 @@ class CountryEconomyDetailedScraper:
                 
                 # Show countries covered
                 countries = sorted(df_filtered['Reference area'].unique())
-                print(f"\n🌍 Countries covered ({len(countries)}):")
+                print(f"\nCountries covered ({len(countries)}):")
                 print(", ".join(countries))
             
             return True
         else:
-            print(f"❌ No data to save")
+            print(f"No data to save")
             return False
+        
+    def save_data_to_mysql(self, df, db_name, table_name="countryeconomy_data"):
+        data = []
+
+        try:
+            if df is not None and not df.empty:
+                # Ensure we have the exact 5 columns requested
+                required_columns = ['Reference area', 'Rating agency', 'Rating', 'Rating date', 'Term type']
+            
+                # Filter to only required columns
+                df_filtered = df[required_columns].copy()
+            
+                # Remove rows with empty ratings or dates
+                df_filtered = df_filtered.dropna(subset=['Rating', 'Rating date'])
+                df_filtered = df_filtered[df_filtered['Rating'] != '']
+                df_filtered = df_filtered[df_filtered['Rating date'] != '']
+                df_filtered = df_filtered.rename(columns={'Reference area': 'country'})
+                df_filtered = df_filtered.rename(columns={'Rating agency': 'rating_agency'})
+                df_filtered = df_filtered.rename(columns={'Rating date': 'rating_date'})
+                df_filtered = df_filtered.rename(columns={'Term type': 'term_type'})
+
+
+                # Sort by country and date
+                df_filtered = df_filtered.sort_values(['country', 'rating_date'])
+            
+                conn = None
+                cursor = None
+                try:
+                    conn = mysql.connector.connect(**db_config)
+                    cursor = conn.cursor()
+                    cursor.execute(f"USE {db_name}")
+
+                    insert_query = f"""
+                    INSERT IGNORE INTO {table_name}
+                    (country, rating_agency, rating, rating_date, term_type)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """
+                    cursor.executemany(insert_query, df_filtered.values.tolist())
+                    conn.commit()
+                except mysql.connector.Error as err:
+                    print(f"Error: {err}")
+                except Exception as e:
+                    print(f"Error: {e}")
+                finally:
+                    if cursor:
+                        cursor.close()
+                    if conn:
+                        conn.close()
+                return True
+            else:
+                print(f"No data to save")
+                return False
+  
+        except Exception as e:
+            print(f"Error: {e}")
+            return
+
+   
 
 # Main function for compatibility
 def get_countryeconomy_detailed_data():
@@ -461,14 +518,14 @@ def get_countryeconomy_detailed_data():
     ratings_df = scraper.scrape_all_countries_from_list()
     
     # Save the data
-    success = scraper.save_data(ratings_df, "detailed_country_ratings_history")
-    
+    #success = scraper.save_data(ratings_df, "detailed_country_ratings_history")
+    success = scraper.save_data_to_mysql(ratings_df, db_name, table_name="countryeconomy_data")
     if success:
-        print(f"\n🎉 SUCCESS: Detailed rating history data extracted!")
-        print(f"📁 File: ../data/processed/detailed_country_ratings_history.csv")
-        print(f"🔧 Use relative path: ../data/processed/detailed_country_ratings_history.csv")
+        print(f"\nSUCCESS: Detailed rating history data extracted!")
+        print(f"File: ../data/processed/detailed_country_ratings_history.csv")
+        print(f"Use relative path: ../data/processed/detailed_country_ratings_history.csv")
     else:
-        print(f"\n❌ FAILED: Could not extract detailed rating data")
+        print(f"\nFAILED: Could not extract detailed rating data")
     
     return success
 

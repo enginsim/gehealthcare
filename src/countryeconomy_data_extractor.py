@@ -69,7 +69,7 @@ class CountryEconomyDetailedScraper:
         
     def get_country_rating_history(self, country_url, country_name=None):
         """
-        Scrape rating history table from a country's rating page
+        Scrape rating history table from a country's rating page for all agencies (Moody's, S&P, Fitch)
         
         Parameters:
         country_url (str): URL of the country's rating page
@@ -89,94 +89,106 @@ class CountryEconomyDetailedScraper:
             if not country_name:
                 country_name = self.extract_country_name(soup, country_url)
             
-            # Find the rating table
+            # Find all rating tables
             rating_data = []
             
-            # Look for the main rating table
-            table = soup.find('table')
-            if not table:
-                print(f"No rating table found for {country_name}")
+            # Look for all tables on the page (typically 3 - one for each agency)
+            tables = soup.find_all('table')
+            
+            if not tables:
+                print(f"No rating tables found for {country_name}")
                 return []
             
-            # Extract data rows (skip header row)
-            rows = table.find_all('tr')[1:]
+            # Process each table (each represents a different rating agency)
+            for table_idx, table in enumerate(tables):
+                # Determine rating agency based on table position or headers
+                agency_name = self.determine_rating_agency(table, table_idx)
+                
+                if not agency_name:
+                    print(f"Could not determine rating agency for table {table_idx + 1}")
+                    continue
+                
+                print(f"Processing {agency_name} ratings for {country_name}")
+                
+                # Extract data rows (skip header row)
+                rows = table.find_all('tr')[1:]
+                
+                for row in rows:
+                    cells = row.find_all(['td', 'th'])
+                    if len(cells) >= 2:  # Ensure we have at least date and rating
+                        
+                        # Process each rating type from the table structure
+                        records = []
+                        
+                        # Long term Foreign currency rating
+                        if len(cells) >= 2 and cells[0].get_text(strip=True) and cells[1].get_text(strip=True):
+                            date_text = cells[0].get_text(strip=True)
+                            rating_text = cells[1].get_text(strip=True)
+                            
+                            if date_text and rating_text and date_text != 'Date':
+                                # Clean rating text to extract just the rating (remove outlook)
+                                rating_clean = self.clean_rating_text(rating_text)
+                                if rating_clean:
+                                    records.append({
+                                        'Reference area': country_name,
+                                        'Rating agency': agency_name,
+                                        'Rating': rating_clean,
+                                        'Rating date': self.clean_date_text(date_text),
+                                        'Term type': 'Long term'
+                                    })
+                        
+                        # Long term Local currency rating
+                        if len(cells) >= 4 and cells[2].get_text(strip=True) and cells[3].get_text(strip=True):
+                            date_text = cells[2].get_text(strip=True)
+                            rating_text = cells[3].get_text(strip=True)
+                            
+                            if date_text and rating_text and date_text != 'Date':
+                                rating_clean = self.clean_rating_text(rating_text)
+                                if rating_clean:
+                                    records.append({
+                                        'Reference area': country_name,
+                                        'Rating agency': agency_name,
+                                        'Rating': rating_clean,
+                                        'Rating date': self.clean_date_text(date_text),
+                                        'Term type': 'Long term'
+                                    })
+                        
+                        # Short term Foreign currency rating
+                        if len(cells) >= 6 and cells[4].get_text(strip=True) and cells[5].get_text(strip=True):
+                            date_text = cells[4].get_text(strip=True)
+                            rating_text = cells[5].get_text(strip=True)
+                            
+                            if date_text and rating_text and date_text != 'Date':
+                                rating_clean = self.clean_rating_text(rating_text)
+                                if rating_clean:
+                                    records.append({
+                                        'Reference area': country_name,
+                                        'Rating agency': agency_name,
+                                        'Rating': rating_clean,
+                                        'Rating date': self.clean_date_text(date_text),
+                                        'Term type': 'Short term'
+                                    })
+                        
+                        # Short term Local currency rating
+                        if len(cells) >= 8 and cells[6].get_text(strip=True) and cells[7].get_text(strip=True):
+                            date_text = cells[6].get_text(strip=True)
+                            rating_text = cells[7].get_text(strip=True)
+                            
+                            if date_text and rating_text and date_text != 'Date':
+                                rating_clean = self.clean_rating_text(rating_text)
+                                if rating_clean:
+                                    records.append({
+                                        'Reference area': country_name,
+                                        'Rating agency': agency_name,
+                                        'Rating': rating_clean,
+                                        'Rating date': self.clean_date_text(date_text),
+                                        'Term type': 'Short term'
+                                    })
+                        
+                        # Add all valid records from this row
+                        rating_data.extend(records)
             
-            for row in rows:
-                cells = row.find_all(['td', 'th'])
-                if len(cells) >= 2:  # Ensure we have at least date and rating
-                    
-                    # Process each rating type from the table structure
-                    records = []
-                    
-                    # Long term Foreign currency rating
-                    if len(cells) >= 2 and cells[0].get_text(strip=True) and cells[1].get_text(strip=True):
-                        date_text = cells[0].get_text(strip=True)
-                        rating_text = cells[1].get_text(strip=True)
-                        
-                        if date_text and rating_text and date_text != 'Date':
-                            # Clean rating text to extract just the rating (remove outlook)
-                            rating_clean = self.clean_rating_text(rating_text)
-                            if rating_clean:
-                                records.append({
-                                    'Reference area': country_name,
-                                    'Rating agency': 'Moody\'s',
-                                    'Rating': rating_clean,
-                                    'Rating date': self.clean_date_text(date_text),
-                                    'Term type': 'Long term'
-                                })
-                    
-                    # Long term Local currency rating
-                    if len(cells) >= 4 and cells[2].get_text(strip=True) and cells[3].get_text(strip=True):
-                        date_text = cells[2].get_text(strip=True)
-                        rating_text = cells[3].get_text(strip=True)
-                        
-                        if date_text and rating_text and date_text != 'Date':
-                            rating_clean = self.clean_rating_text(rating_text)
-                            if rating_clean:
-                                records.append({
-                                    'Reference area': country_name,
-                                    'Rating agency': 'Moody\'s',
-                                    'Rating': rating_clean,
-                                    'Rating date': self.clean_date_text(date_text),
-                                    'Term type': 'Long term'
-                                })
-                    
-                    # Short term Foreign currency rating
-                    if len(cells) >= 6 and cells[4].get_text(strip=True) and cells[5].get_text(strip=True):
-                        date_text = cells[4].get_text(strip=True)
-                        rating_text = cells[5].get_text(strip=True)
-                        
-                        if date_text and rating_text and date_text != 'Date':
-                            rating_clean = self.clean_rating_text(rating_text)
-                            if rating_clean:
-                                records.append({
-                                    'Reference area': country_name,
-                                    'Rating agency': 'Moody\'s',
-                                    'Rating': rating_clean,
-                                    'Rating date': self.clean_date_text(date_text),
-                                    'Term type': 'Short term'
-                                })
-                    
-                    # Short term Local currency rating
-                    if len(cells) >= 8 and cells[6].get_text(strip=True) and cells[7].get_text(strip=True):
-                        date_text = cells[6].get_text(strip=True)
-                        rating_text = cells[7].get_text(strip=True)
-                        
-                        if date_text and rating_text and date_text != 'Date':
-                            rating_clean = self.clean_rating_text(rating_text)
-                            if rating_clean:
-                                records.append({
-                                    'Reference area': country_name,
-                                    'Rating agency': 'Moody\'s',
-                                    'Rating': rating_clean,
-                                    'Rating date': self.clean_date_text(date_text),
-                                    'Term type': 'Short term'
-                                })
-                    
-                    # Add all valid records from this row
-                    rating_data.extend(records)
-            
-            print(f"Extracted {len(rating_data)} rating records for {country_name}")
+            print(f"Extracted {len(rating_data)} total rating records for {country_name}")
             return rating_data
             
         except requests.RequestException as e:
@@ -186,15 +198,64 @@ class CountryEconomyDetailedScraper:
             print(f"Error parsing {country_url}: {e}")
             return []
     
+    def determine_rating_agency(self, table, table_idx):
+        """
+        Determine which rating agency a table belongs to
+        
+        Parameters:
+        table: BeautifulSoup table element
+        table_idx: Index of the table (0-based)
+        
+        Returns:
+        str: Rating agency name
+        """
+        # First, try to find agency name from nearby headers or elements
+        # Look for h2, h3, or other headers before the table
+        parent = table.parent
+        if parent:
+            # Look for headers within the parent element
+            for header in parent.find_all(['h2', 'h3', 'h4']):
+                header_text = header.get_text(strip=True).lower()
+                if 'moody' in header_text:
+                    return "Moody's"
+                elif 's&p' in header_text or 'standard' in header_text:
+                    return "S&P"
+                elif 'fitch' in header_text:
+                    return "Fitch"
+        
+        # If we can't find headers, check the previous sibling elements
+        prev_element = table.find_previous_sibling()
+        while prev_element and prev_element.name in ['br', 'hr', 'p']:
+            if prev_element.name in ['h2', 'h3', 'h4', 'p']:
+                text = prev_element.get_text(strip=True).lower()
+                if 'moody' in text:
+                    return "Moody's"
+                elif 's&p' in text or 'standard' in text:
+                    return "S&P"
+                elif 'fitch' in text:
+                    return "Fitch"
+            prev_element = prev_element.find_previous_sibling()
+        
+        # If we still can't determine, use table index as fallback
+        # Typically: 0 = Moody's, 1 = S&P, 2 = Fitch
+        agency_map = {
+            0: "Moody's",
+            1: "S&P",
+            2: "Fitch"
+        }
+        
+        return agency_map.get(table_idx, f"Unknown Agency {table_idx + 1}")
+    
     def clean_rating_text(self, rating_text):
         """
         Clean rating text to extract just the rating (remove outlook info)
+        Works for all rating agencies (Moody's, S&P, Fitch)
         
         Parameters:
-        rating_text (str): Raw rating text like "Ba3 (Stable)" or "B1 (Positive)"
+        rating_text (str): Raw rating text like "Ba3 (Stable)", "BB- (Positive)", "BB+ (Negative)"
         
         Returns:
-        str: Clean rating like "Ba3" or "B1"
+        str: Clean rating like "Ba3", "BB-", "BB+"
         """
         if not rating_text:
             return ""
@@ -206,6 +267,7 @@ class CountryEconomyDetailedScraper:
         rating_clean = rating_clean.strip()
         
         # Only return if it looks like a valid rating
+        # Valid ratings include: Moody's (Aaa, Aa1, Ba3, etc.), S&P/Fitch (AAA, AA+, BB-, etc.)
         if rating_clean and len(rating_clean) >= 1:
             return rating_clean
         

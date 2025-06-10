@@ -15,7 +15,7 @@ BeautifulSoup (for web scraping)
 
 Pandas (for data processing)
 
-Power BI (for dashboard creation and visualisation)
+Tableau (for dashboard creation and visualisation)
 
 Trello (for Agile project management)
 

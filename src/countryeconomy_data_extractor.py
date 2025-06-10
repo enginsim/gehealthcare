@@ -2,11 +2,19 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import os
+import sys
 import time
 from datetime import datetime
 import re
 import mysql.connector
-from .db_config import db_config, db_name
+
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from .db_config import db_config, db_name
+except ImportError:
+    from db_config import db_config, db_name
 
 class CountryEconomyDetailedScraper:
     
@@ -100,12 +108,17 @@ class CountryEconomyDetailedScraper:
                 return []
             
             # Process each table (each represents a different rating agency)
+            # Stop after processing 3 tables (Moody's, S&P, Fitch)
             for table_idx, table in enumerate(tables):
+                # Only process first 3 tables
+                if table_idx >= 3:
+                    break
+                    
                 # Determine rating agency based on table position or headers
                 agency_name = self.determine_rating_agency(table, table_idx)
                 
                 if not agency_name:
-                    print(f"Could not determine rating agency for table {table_idx + 1}")
+                    # Skip this table if we can't determine the agency
                     continue
                 
                 print(f"Processing {agency_name} ratings for {country_name}")
@@ -117,16 +130,15 @@ class CountryEconomyDetailedScraper:
                     cells = row.find_all(['td', 'th'])
                     if len(cells) >= 2:  # Ensure we have at least date and rating
                         
-                        # Process each rating type from the table structure
+                        # Process ONLY FOREIGN CURRENCY ratings
                         records = []
                         
-                        # Long term Foreign currency rating
+                        # Long term Foreign currency rating (columns 0-1)
                         if len(cells) >= 2 and cells[0].get_text(strip=True) and cells[1].get_text(strip=True):
                             date_text = cells[0].get_text(strip=True)
                             rating_text = cells[1].get_text(strip=True)
                             
                             if date_text and rating_text and date_text != 'Date':
-                                # Clean rating text to extract just the rating (remove outlook)
                                 rating_clean = self.clean_rating_text(rating_text)
                                 if rating_clean:
                                     records.append({
@@ -137,42 +149,10 @@ class CountryEconomyDetailedScraper:
                                         'Term type': 'Long term'
                                     })
                         
-                        # Long term Local currency rating
-                        if len(cells) >= 4 and cells[2].get_text(strip=True) and cells[3].get_text(strip=True):
-                            date_text = cells[2].get_text(strip=True)
-                            rating_text = cells[3].get_text(strip=True)
-                            
-                            if date_text and rating_text and date_text != 'Date':
-                                rating_clean = self.clean_rating_text(rating_text)
-                                if rating_clean:
-                                    records.append({
-                                        'Reference area': country_name,
-                                        'Rating agency': agency_name,
-                                        'Rating': rating_clean,
-                                        'Rating date': self.clean_date_text(date_text),
-                                        'Term type': 'Long term'
-                                    })
-                        
-                        # Short term Foreign currency rating
+                        # Short term Foreign currency rating (columns 4-5)
                         if len(cells) >= 6 and cells[4].get_text(strip=True) and cells[5].get_text(strip=True):
                             date_text = cells[4].get_text(strip=True)
                             rating_text = cells[5].get_text(strip=True)
-                            
-                            if date_text and rating_text and date_text != 'Date':
-                                rating_clean = self.clean_rating_text(rating_text)
-                                if rating_clean:
-                                    records.append({
-                                        'Reference area': country_name,
-                                        'Rating agency': agency_name,
-                                        'Rating': rating_clean,
-                                        'Rating date': self.clean_date_text(date_text),
-                                        'Term type': 'Short term'
-                                    })
-                        
-                        # Short term Local currency rating
-                        if len(cells) >= 8 and cells[6].get_text(strip=True) and cells[7].get_text(strip=True):
-                            date_text = cells[6].get_text(strip=True)
-                            rating_text = cells[7].get_text(strip=True)
                             
                             if date_text and rating_text and date_text != 'Date':
                                 rating_clean = self.clean_rating_text(rating_text)
@@ -201,14 +181,28 @@ class CountryEconomyDetailedScraper:
     def determine_rating_agency(self, table, table_idx):
         """
         Determine which rating agency a table belongs to
+        Returns None for unknown agencies to skip them completely
         
         Parameters:
         table: BeautifulSoup table element
         table_idx: Index of the table (0-based)
         
         Returns:
-        str: Rating agency name
+        str: Rating agency name or None to skip
         """
+        # Check if table has any data rows (not just headers)
+        rows = table.find_all('tr')
+        if len(rows) <= 1:  # Only header or empty
+            return None
+            
+        # Check if table has rating data by looking at cells
+        first_data_row = rows[1] if len(rows) > 1 else None
+        if first_data_row:
+            cells = first_data_row.find_all(['td', 'th'])
+            # Skip tables that don't look like rating tables
+            if len(cells) < 2:
+                return None
+        
         # First, try to find agency name from nearby headers or elements
         # Look for h2, h3, or other headers before the table
         parent = table.parent
@@ -223,10 +217,11 @@ class CountryEconomyDetailedScraper:
                 elif 'fitch' in header_text:
                     return "Fitch"
         
-        # If we can't find headers, check the previous sibling elements
+        # Check the previous sibling elements
         prev_element = table.find_previous_sibling()
-        while prev_element and prev_element.name in ['br', 'hr', 'p']:
-            if prev_element.name in ['h2', 'h3', 'h4', 'p']:
+        checked_elements = 0
+        while prev_element and checked_elements < 10:
+            if prev_element.name in ['h2', 'h3', 'h4', 'p', 'div']:
                 text = prev_element.get_text(strip=True).lower()
                 if 'moody' in text:
                     return "Moody's"
@@ -235,16 +230,33 @@ class CountryEconomyDetailedScraper:
                 elif 'fitch' in text:
                     return "Fitch"
             prev_element = prev_element.find_previous_sibling()
+            checked_elements += 1
         
-        # If we still can't determine, use table index as fallback
-        # Typically: 0 = Moody's, 1 = S&P, 2 = Fitch
-        agency_map = {
-            0: "Moody's",
-            1: "S&P",
-            2: "Fitch"
-        }
+        # Look for agency name in table itself
+        table_text = table.get_text().lower()
+        if 'moody' in table_text:
+            return "Moody's"
+        elif 's&p' in table_text or 'standard' in table_text:
+            return "S&P"
+        elif 'fitch' in table_text:
+            return "Fitch"
         
-        return agency_map.get(table_idx, f"Unknown Agency {table_idx + 1}")
+        # If we can't determine the agency, return None to skip this table
+        # Only return known agencies (Moody's, S&P, Fitch)
+        if table_idx < 3:
+            # Try index-based mapping only for first 3 tables
+            agency_map = {
+                0: "Moody's",
+                1: "S&P",
+                2: "Fitch"
+            }
+            # Double-check that this looks like a rating table
+            table_text = table.get_text().lower()
+            if any(word in table_text for word in ['rating', 'date', 'outlook']):
+                return agency_map.get(table_idx)
+        
+        # Return None for any unknown agency - this will skip the table
+        return None
     
     def clean_rating_text(self, rating_text):
         """
@@ -580,12 +592,19 @@ def get_countryeconomy_detailed_data():
     ratings_df = scraper.scrape_all_countries_from_list()
     
     # Save the data
-    #success = scraper.save_data(ratings_df, "detailed_country_ratings_history")
-    success = scraper.save_data_to_mysql(ratings_df, db_name, table_name="countryeconomy_data")
-    if success:
-        print(f"\nSUCCESS: Detailed rating history data extracted!")
-        print(f"File: ../data/processed/detailed_country_ratings_history.csv")
-        print(f"Use relative path: ../data/processed/detailed_country_ratings_history.csv")
+    success = scraper.save_data(ratings_df, "detailed_country_ratings_history")
+    success_mysql = scraper.save_data_to_mysql(ratings_df, db_name, table_name="countryeconomy_data")
+    
+    if success and success_mysql:
+        print(f"\nSUCCESS: Detailed rating history data extracted and saved to both CSV and MySQL!")
+        print(f"CSV File: ../data/processed/detailed_country_ratings_history.csv")
+        print(f"MySQL Table: {db_name}.countryeconomy_data")
+    elif success:
+        print(f"\nPARTIAL SUCCESS: Data saved to CSV but MySQL save failed")
+        print(f"CSV File: ../data/processed/detailed_country_ratings_history.csv")
+    elif success_mysql:
+        print(f"\nPARTIAL SUCCESS: Data saved to MySQL but CSV save failed")
+        print(f"MySQL Table: {db_name}.countryeconomy_data")
     else:
         print(f"\nFAILED: Could not extract detailed rating data")
     

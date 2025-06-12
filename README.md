@@ -28,7 +28,7 @@ Normalise country naming conventions
 
 Create a low touch updating system for refreshing data
 
-Design and deploy a fully interactive Power BI dashboard
+Design and deploy a fully interactive Tableau dashboard
 
 🚀 Project Timeline     
 ✅ Country reference table completed: by 30 April 2025  

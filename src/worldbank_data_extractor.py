@@ -2,11 +2,16 @@ import os
 import zipfile
 import requests
 import pandas as pd
-from .db_config import db_config, db_name
-import mysql.connector
+from pymongo import MongoClient
 
-def extract_file_to_mysql(filepath,db_name, table_name="worldbank_data"):
-    
+
+
+
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DB = os.getenv("MONGO_DB")
+MONGO_COLLECTION = "worldbank_data"
+
+def extract_file_to_mongodb(filepath, mongo_uri, db_name, collection_name="worldbank_data"):
     try:
         df = pd.read_excel(filepath)
 
@@ -18,7 +23,7 @@ def extract_file_to_mysql(filepath,db_name, table_name="worldbank_data"):
         missing = set(expected_columns) - set(df.columns)
         if missing:
             raise ValueError(f"Missing expected columns: {missing}")
-        
+
         df['year'] = pd.to_numeric(df['year'], errors='coerce')
         df['estimate'] = pd.to_numeric(df['estimate'], errors='coerce')
         df['stddev'] = pd.to_numeric(df['stddev'], errors='coerce')
@@ -28,54 +33,28 @@ def extract_file_to_mysql(filepath,db_name, table_name="worldbank_data"):
         df['pctrankupper'] = pd.to_numeric(df['pctrankupper'], errors='coerce')
 
         df.dropna(subset=['code', 'countryname', 'year', 'indicator', 'estimate'], inplace=True)
-        
 
+        records = df.to_dict(orient="records")
 
-        # Convert to list of tuples
-        data = [tuple(row) for row in df.itertuples(index=False, name=None)]
+        client = MongoClient(mongo_uri)
+        db = client[db_name]
+        collection = db[collection_name]
 
-        conn = None
-        cursor = None
+        for record in records:
+            collection.update_one(
+                {
+                    "codeindyr": record["codeindyr"],
+                    "indicator": record["indicator"],
+                    "year": record["year"]
+                },
+                {"$set": record},
+                upsert=True
+            )
 
-        try:
-            conn = mysql.connector.connect(**db_config)
-            cursor = conn.cursor()
-            cursor.execute(f"USE {db_name}")
-            insert_query = f"""
-                INSERT IGNORE INTO {table_name}
-                (codeindyr, code, countryname, year, indicator,
-                estimate, stddev, nsource, pctrank, pctranklower, pctrankupper)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.executemany(insert_query, data)
-            conn.commit()
-
-        except mysql.connector.Error as err:
-            print(f"[Error] {err}")
-        except Exception as e:
-            print(f"[Error] {e}")
-        finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
-
-        # Delete excel file
-        if os.path.exists(filepath):
-            os.remove(filepath)
-
-        # Delete zip file
-        zip_path = os.path.join(os.path.dirname(filepath), "wgidata.zip")
-        if os.path.exists(zip_path):
-            os.remove(zip_path)
-        #Delete pdf file
-        pdf_path = os.path.join(os.path.dirname(filepath), "readme.pdf")
-        if os.path.exists(pdf_path):
-            os.remove(pdf_path)
-
+        client.close()
+        print("Insert completed")
     except Exception as e:
-        print(f"Error loading dataset: {e}")
-        return None
+        print(f"Error loading dataset to MongoDB: {e}")
 
 def download_and_extract_data(url, extract_to="data/raw"):
     
@@ -93,7 +72,7 @@ def download_and_extract_data(url, extract_to="data/raw"):
         for filename in os.listdir(extract_to):
             if filename.lower() == "wgidataset.xlsx":
                 excel_path = os.path.join(extract_to, filename)
-                extract_file_to_mysql(excel_path, db_name, table_name="worldbank_data")
+                extract_file_to_mongodb(excel_path, MONGO_URI, MONGO_DB, collection_name=MONGO_COLLECTION)
     
     except Exception as e:
         print(f"An error occured1: {e}")

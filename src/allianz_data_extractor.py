@@ -10,9 +10,14 @@ import pdfplumber
 import pandas as pd
 import os
 import time
-import mysql.connector
+from pymongo import MongoClient
 
-from .db_config import db_config, db_name
+
+
+
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DB = os.getenv("MONGO_DB")
+MONGO_COLLECTION = "allianz_data"
 
 def get_previous_quarter(date=None):
     if date is None:
@@ -46,7 +51,8 @@ def download_pdf_with_selenium(pdf_url, download_folder="data/raw"):
 
     driver.quit()
 
-def extract_pdf_to_mysql(pdf_path, db_config, db_name, table_name="allianz_data", year_quarter="2025Q2"):
+
+def extract_pdf_to_mongodb(pdf_path, mongo_uri, db_name, collection_name="allianz_data", year_quarter="2025Q2"):
     data = []
 
     try:
@@ -65,36 +71,35 @@ def extract_pdf_to_mysql(pdf_path, db_config, db_name, table_name="allianz_data"
                             mid_rating = parts[-3]
                             short_rating = parts[-2]
                             level = parts[-1].strip("()")
-                            data.append((country, mid_rating, short_rating, level, year_quarter))
+                            doc = {
+                                "country": country,
+                                "medium_term_rating": mid_rating,
+                                "short_term_rating": short_rating,
+                                "risk_level": level,
+                                "year_quarter": year_quarter
+                            }
+                            data.append(doc)
     except Exception as e:
         print(f"Error: {e}")
         return
 
-    conn = None
-    cursor = None
     try:
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor()
-        cursor.execute(f"USE {db_name}")
-
-        insert_query = f"""
-            INSERT IGNORE INTO {table_name}
-            (country, medium_term_rating, short_term_rating, risk_level, year_quarter)
-            VALUES (%s, %s, %s, %s, %s)
-        """
-        cursor.executemany(insert_query, data)
-        conn.commit()
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        client = MongoClient(mongo_uri)
+        db = client[db_name]
+        collection = db[collection_name]
+        if data:
+            # Avoid duplicates: use country + year_quarter as a unique identifier
+            for doc in data:
+                collection.update_one(
+                    {"country": doc["country"], "year_quarter": doc["year_quarter"]},
+                    {"$set": doc},
+                    upsert=True
+                )
+        print("Insert completed")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"MongoDB Error: {e}")
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-
-
+        client.close()
 
 def get_allianz_last_available_info():
     options = Options()
@@ -135,6 +140,15 @@ def get_allianz_data():
     d["2025Q1"] = ["Country_Risk_Ratings_March_2025_Q1_final.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq1-2025/Country_Risk_Ratings_March_2025_Q1_final.pdf"]
     d["2024Q1"] = ["Q12024countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq12024/Q12024countryriskratings-EXT.pdf"]
     d["2024Q2"] = ["Q22024countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
+    d["2024Q3"] = ["Q32024countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
+    d["2024Q4"] = ["Q42024countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
+    d["2023Q1"] = ["Q12023countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
+    d["2023Q2"] = ["Q22023countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
+    d["2023Q3"] = ["Q32023countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
+    d["2023Q4"] = ["Q42023countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
+    d["2022Q4"] = ["Q42022countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
+    d["2024Q2"] = ["Q22022countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
+    
     if prev_quarter not in d:
         d[prev_quarter] = get_allianz_last_available_info()
     
@@ -143,7 +157,8 @@ def get_allianz_data():
             pdf_path = os.path.join("data/raw", pdf_name)
             if not os.path.exists(pdf_path):
                 download_pdf_with_selenium(pdf_url, download_folder="data/raw")
-            extract_pdf_to_mysql(pdf_path, db_config, db_name, year_quarter=year_quarter)
+            extract_pdf_to_mongodb(pdf_path, MONGO_URI, MONGO_DB, year_quarter=year_quarter)
+
             time.sleep(2)
         except Exception as e:
-            print(f"Error processing {year_quarter}: {e}")
+            print(f"Error {year_quarter}: {e}")

@@ -3,6 +3,11 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import os
 import time
+from pymongo import MongoClient, UpdateOne
+
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DB = os.getenv("MONGO_DB")
+MONGO_COLLECTION = "tradingeconomics_data"
 
 def get_countries(base_url="https://tradingeconomics.com/country-list/rating"):
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -57,20 +62,39 @@ def get_country_ratings(country_name):
                 "Date": date
             })
 
-    return pd.DataFrame(data)
+    return data
+
+
 
 def get_tradingeconomics_data():
-    
+    client = MongoClient(MONGO_URI)
+    db = client[MONGO_DB]
+    collection = db[MONGO_COLLECTION]
+    collection.create_index(
+        [("Country", 1), ("Agency", 1), ("Date", 1)],
+        unique=True
+    )
     names = get_countries()
+    operations = []
 
-    all_data = pd.DataFrame()
     for i, name in enumerate(names):
-        print(f"({i+1}/{len(names)}) ...")
-        df = get_country_ratings(name)
-        if not df.empty:
-            all_data = pd.concat([all_data, df], ignore_index=True)
-        time.sleep(1.5)
+        try:
+            country_data = get_country_ratings(name)
+            for doc in country_data:
+                operations.append(
+                    UpdateOne(
+                        {"Country": doc["Country"], "Agency": doc["Agency"], "Date": doc["Date"]},
+                        {"$set": doc},
+                        upsert=True
+                    )
+                )
+        except Exception as e:
+            print(f"Error {name}: {e}")
 
-    os.makedirs("data/processed", exist_ok=True)
-    all_data.to_csv("data/processed/tradingeconomics_ratings.csv", index=False)
+        time.sleep(1)
 
+    if operations:
+        result = collection.bulk_write(operations, ordered=False)
+        print("Operation completed")
+    else:
+        print("No operations to perform.")

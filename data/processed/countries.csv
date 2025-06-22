@@ -7,12 +7,12 @@ Angola,AGO,
 Antigua and Barbuda,ATG,
 Argentina,ARG,
 Armenia,ARM,
-Australia,AUS,"{
-""Christmas Island"": ""CXR"",
-""Cocos (Keeling) Islands"": ""CCK"",
-""Heard Island and McDonald Islands"": ""HMD"",
-""Norfolk Island"": ""NFK""
-}"
+Australia,AUS,{
+"Christmas Island": "CXR",
+"Cocos (Keeling) Islands": "CCK",
+"Heard Island and McDonald Islands": "HMD",
+"Norfolk Island": "NFK"
+},
 Austria,AUT,
 Azerbaijan,AZE,
 Bahamas,BHS,
@@ -39,22 +39,22 @@ Canada,CAN,
 Central African Republic,CAF,
 Chad,TCD,
 Chile,CHL,
-China,CHN,"{
-""Macao"": ""MAC""
-}"
+China,CHN,{
+"Macao": "MAC"
+},
 Colombia,COL,
 Comoros,COM,
 Costa Rica,CRI,
-Côte d'Ivoire,CIV,
+CÔøΩte d'Ivoire,CIV,
 Croatia,HRV,
 Cuba,CUB,
 Cyprus,CYP,
 Czechia,CZE,
 Democratic Republic of the Congo,COD,
-Denmark,DNK,"{
-""Faroe Islands"": ""FRO"",
-""Greenland"": ""GRL""
-}"
+Denmark,DNK,{
+"Faroe Islands": "FRO",
+"Greenland": "GRL"
+},
 Djibouti,DJI,
 Dominica,DMA,
 Dominican Republic,DOM,
@@ -68,23 +68,23 @@ Eswatini,SWZ,
 Ethiopia,ETH,
 Federated States of Micronesia,FSM,
 Fiji,FJI,
-Finland,FIN,"{
-""Åland Islands"": ""ALA""
-}"
-France,FRA,"{
-""French Guiana"": ""GUF"",
-""French Polynesia"": ""PYF"",
-""French Southern Territories"": ""ATF"",
-""Guadeloupe"": ""GLP"",
-""Martinique"": ""MTQ"",
-""Mayotte"": ""MYT"",
-""New Caledonia"": ""NCL"",
-""Réunion"": ""REU"",
-""Saint Barthélemy"": ""BLM"",
-""Saint Martin (French part)"": ""MAF"",
-""Saint Pierre and Miquelon"": ""SPM"",
-""Wallis and Futuna"": ""WLF""
-}"
+Finland,FIN,{
+"ÔøΩland Islands": "ALA"
+},
+France,FRA,{
+"French Guiana": "GUF",
+"French Polynesia": "PYF",
+"French Southern Territories": "ATF",
+"Guadeloupe": "GLP",
+"Martinique": "MTQ",
+"Mayotte": "MYT",
+"New Caledonia": "NCL",
+"RÔøΩunion": "REU",
+"Saint BarthÔøΩlemy": "BLM",
+"Saint Martin (French part)": "MAF",
+"Saint Pierre and Miquelon": "SPM",
+"Wallis and Futuna": "WLF"
+},
 Gabon,GAB,
 Georgia,GEO,
 Germany,DEU,
@@ -144,26 +144,26 @@ Myanmar,MMR,
 Namibia,NAM,
 Nauru,NRU,
 Nepal,NPL,
-"Netherlands, Kingdom of the",NLD,"{
-""Aruba"": ""ABW"",
-""Bonaire, Sint Eustatius and Saba"": ""BES"",
-""Curaçao"": ""CUW"",
-""Sint Maarten (Dutch part)"": ""SXM""
-}"
-New Zealand,NZL,"{
-""Cook Islands"": ""COK"",
-""Niue"": ""NIU"",
-""Tokelau"": ""TKL""
-}"
+"Netherlands, Kingdom of the",NLD,{
+"Aruba": "ABW",
+"Bonaire, Sint Eustatius and Saba": "BES",
+"CuraÔøΩao": "CUW",
+"Sint Maarten (Dutch part)": "SXM"
+},
+New Zealand,NZL,{
+"Cook Islands": "COK",
+"Niue": "NIU",
+"Tokelau": "TKL"
+},
 Nicaragua,NIC,
 Niger,NER,
 Nigeria,NGA,
 North Korea,PRK,
 North Macedonia,MKD,
-Norway,NOR,"{
-""Bouvet Island"": ""BVT"",
-""Svalbard and Jan Mayen"": ""SJM""
-}"
+Norway,NOR,{
+"Bouvet Island": "BVT",
+"Svalbard and Jan Mayen": "SJM"
+},
 Oman,OMN,
 Pakistan,PAK,
 Palau,PLW,
@@ -216,37 +216,37 @@ Togo,TGO,
 Tonga,TON,
 Trinidad and Tobago,TTO,
 Tunisia,TUN,
-Türkiye,TUR,
+TÔøΩrkiye,TUR,
 Turkmenistan,TKM,
 Tuvalu,TUV,
 Uganda,UGA,
 Ukraine,UKR,
 United Arab Emirates,ARE,
-United Kingdom of Great Britain and Northern Ireland,GBR,"{
-""Anguilla"": ""AIA"",
-""Bermuda"": ""BMU"",
-""British Indian Ocean Territory"": ""IOT"",
-""Cayman Islands"": ""CYM"",
-""Falkland Islands (Malvinas)"": ""FLK"",
-""Gibraltar"": ""GIB"",
-""Guernsey"": ""GGY"",
-""Isle of Man"": ""IMN""
-""Jersey"": ""JEY"",
-""Montserrat"": ""MSR"",
-""Pitcairn"": ""PCN"",
-""Saint Helena, Ascension and Tristan da Cunha"": ""SHN"",
-""South Georgia and the South Sandwich Islands"": ""SGS"",
-""Turks and Caicos Islands"": ""TCA"",
-""Virgin Islands (British)"": ""VGB""
-}"
-United States of America,USA,"{
-""American Samoa"": ""ASM"",
-""Guam"": ""GUM"",
-""Northern Mariana Islands"": ""MNP"",
-""Puerto Rico"": ""PRI"",
-""United States Minor Outlying Islands"": ""UMI"",
-""Virgin Islands (U.S.)"": ""VIR""
-}"
+United Kingdom of Great Britain and Northern Ireland,GBR,{
+"Anguilla": "AIA",
+"Bermuda": "BMU",
+"British Indian Ocean Territory": "IOT",
+"Cayman Islands": "CYM",
+"Falkland Islands (Malvinas)": "FLK",
+"Gibraltar": "GIB",
+"Guernsey": "GGY",
+"Isle of Man": "IMN"
+"Jersey": "JEY",
+"Montserrat": "MSR",
+"Pitcairn": "PCN",
+"Saint Helena, Ascension and Tristan da Cunha": "SHN",
+"South Georgia and the South Sandwich Islands": "SGS",
+"Turks and Caicos Islands": "TCA",
+"Virgin Islands (British)": "VGB"
+},
+United States of America,USA,{
+"American Samoa": "ASM",
+"Guam": "GUM",
+"Northern Mariana Islands": "MNP",
+"Puerto Rico": "PRI",
+"United States Minor Outlying Islands": "UMI",
+"Virgin Islands (U.S.)": "VIR"
+},
 Uruguay,URY,
 Uzbekistan,UZB,
 Vanuatu,VUT,

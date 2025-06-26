@@ -26,7 +26,7 @@ def get_country_links():
 def get_table_data(data, agency, country):
     results = []
     for table in data.find_all("table", class_="tabledat"):
-        # Extract header rows
+       
         header_rows = table.find_all("tr")
       
         if len(header_rows) < 2:
@@ -43,7 +43,6 @@ def get_table_data(data, agency, country):
             currency_clean = currency_text.replace("currency", "").strip()
             column_info.append((type_clean, currency_clean))
 
-        # Parse data rows
         for row in header_rows[2:]:
             cells = row.find_all("td")
             
@@ -65,15 +64,16 @@ def get_table_data(data, agency, country):
                     rating = match.group(1)
                     outlook = match.group(2) or ""
                     type_, currency = column_info[i // 2]
-
+                    alpha3 = get_country_code(country)
                     results.append({
                         "Country": country,
-                        "Agency": agency,  # Modify here if agency name is available
+                        "Agency": agency,
                         "Date": date,
                         "Rating": rating,
                         "Outlook": outlook,
                         "Type": type_,
                         "Currency": currency,
+                        "Alpha3":alpha3
                     })
                 except Exception:
                     continue
@@ -84,7 +84,7 @@ def parse_rating_page(country, url):
         r = requests.get(url, timeout=10)
         r.raise_for_status()
     except Exception as e:
-        print(f"[ERROR] Failed to get page for {country}: {e}")
+        print(f"Failed to get page for {country}: {e}")
         return []
 
     soup = BeautifulSoup(r.text, "html.parser")
@@ -108,7 +108,6 @@ def get_country_economy_data():
     client = MongoClient(MONGO_URI)
     db = client[MONGO_DB]
     collection = db[MONGO_COLLECTION]
-    # Ensure a unique index to prevent duplicates
     collection.create_index(
         [("Country", 1), ("Agency", 1), ("Date", 1)],
         unique=True
@@ -120,6 +119,7 @@ def get_country_economy_data():
         try:
             country = country[:-4].rstrip()
             country_data = parse_rating_page(country, url)
+            
             flat_data = [item for sublist in country_data for item in sublist if item]
 
             if flat_data:
@@ -139,3 +139,151 @@ def get_country_economy_data():
         except Exception as e:
             print(f"Error {country}: {e}")
 
+def get_country_code(name):
+    country_code = {
+  "Albania": "ALB",
+  "Andorra": "AND",
+  "Angola": "AGO",
+  "Argentina": "ARG",
+  "Armenia": "ARM",
+  "Australia": "AUS",
+  "Austria": "AUT",
+  "Azerbaijan": "AZE",
+  "Bahamas": "BHS",
+  "Bahrain": "BHR",
+  "Bangladesh": "BGD",
+  "Barbados": "BRB",
+  "Belarus": "BLR",
+  "Belgium": "BEL",
+  "Belize": "BLZ",
+  "Benin": "BEN",
+  "Bolivia": "BOL",
+  "Bosnia and Herzegovina": "BIH",
+  "Botswana": "BWA",
+  "Brazil": "BRA",
+  "Bulgaria": "BGR",
+  "Burkina Faso": "BFA",
+  "Cabo Verde": "CPV",
+  "Cambodia": "KHM",
+  "Cameroon": "CMR",
+  "Canada": "CAN",
+  "Chile": "CHL",
+  "China": "CHN",
+  "Colombia": "COL",
+  "Costa Rica": "CRI",
+  "Croatia": "HRV",
+  "Cuba": "CUB",
+  "Cyprus": "CYP",
+  "Czechia": "CZE",
+  "Côte d'Ivoire": "CIV",
+  "Democratic Republic of the Congo": "COD",
+  "Denmark": "DNK",
+  "Dominican Republic": "DOM",
+  "Ecuador": "ECU",
+  "Egypt": "EGY",
+  "El Salvador": "SLV",
+  "Estonia": "EST",
+  "Ethiopia": "ETH",
+  "Fiji": "FJI",
+  "Finland": "FIN",
+  "France": "FRA",
+  "Gabon": "GAB",
+  "Georgia": "GEO",
+  "Germany": "DEU",
+  "Ghana": "GHA",
+  "Greece": "GRC",
+  "Grenada": "GRD",
+  "Guatemala": "GTM",
+  "Honduras": "HND",
+  "Hong Kong": "HKG",
+  "Hungary": "HUN",
+  "Iceland": "ISL",
+  "India": "IND",
+  "Indonesia": "IDN",
+  "Iran": "IRN",
+  "Iraq": "IRQ",
+  "Ireland": "IRL",
+  "Israel": "ISR",
+  "Italy": "ITA",
+  "Jamaica": "JAM",
+  "Japan": "JPN",
+  "Jordan": "JOR",
+  "Kazakhstan": "KAZ",
+  "Kenya": "KEN",
+  "Kuwait": "KWT",
+  "Laos": "UNKNOWN",
+  "Latvia": "LVA",
+  "Lebanon": "LBN",
+  "Lesotho": "LSO",
+  "Libya": "LBY",
+  "Liechtenstein": "LIE",
+  "Lithuania": "LTU",
+  "Luxembourg": "LUX",
+  "Malawi": "MWI",
+  "Malaysia": "MYS",
+  "Maldives": "MDV",
+  "Mali": "MLI",
+  "Malta": "MLT",
+  "Mauritius": "MUS",
+  "Mexico": "MEX",
+  "Moldova": "MDA",
+  "Mongolia": "MNG",
+  "Montenegro": "MNE",
+  "Morocco": "MAR",
+  "Mozambique": "MOZ",
+  "Namibia": "NAM",
+  "Netherlands": "NLD",
+  "New Zealand": "NZL",
+  "Nicaragua": "NIC",
+  "Nigeria": "NGA",
+  "North Macedonia": "MKD",
+  "Norway": "NOR",
+  "Oman": "OMN",
+  "Pakistan": "PAK",
+  "Panama": "PAN",
+  "Papua New Guinea": "PNG",
+  "Paraguay": "PRY",
+  "Peru": "PER",
+  "Philippines": "PHL",
+  "Poland": "POL",
+  "Portugal": "PRT",
+  "Qatar": "QAT",
+  "Republic of the Congo": "COG",
+  "Romania": "ROU",
+  "Russia": "RUS",
+  "Rwanda": "RWA",
+  "Saint Vincent and the Grenadines": "VCT",
+  "San Marino": "SMR",
+  "Saudi Arabia": "SAU",
+  "Senegal": "SEN",
+  "Serbia": "SRB",
+  "Seychelles": "SYC",
+  "Singapore": "SGP",
+  "Slovakia": "SVK",
+  "Slovenia": "SVN",
+  "South Africa": "ZAF",
+  "South Korea": "KOR",
+  "Spain": "ESP",
+  "Sri Lanka": "LKA",
+  "Suriname": "SUR",
+  "Sweden": "SWE",
+  "Switzerland": "CHE",
+  "Taiwan": "TWN",
+  "Thailand": "THA",
+  "The Gambia": "GMB",
+  "Trinidad and Tobago": "TTO",
+  "Tunisia": "TUN",
+  "Turkmenistan": "TKM",
+  "Türkiye": "TUR",
+  "Uganda": "UGA",
+  "Ukraine": "UKR",
+  "United Arab Emirates": "ARE",
+  "United Kingdom": "GBR",
+  "United States": "USA",
+  "Uruguay": "URY",
+  "Uzbekistan": "UZB",
+  "Venezuela": "VEN",
+  "Viet Nam": "VNM",
+  "Zambia": "ZMB"
+}
+    return country_code[name]

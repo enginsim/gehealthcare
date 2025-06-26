@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "tokyo-scholar-464119-b4",
+  "private_key_id": "6a8fa808f85e8aa817bb6ecd2bf66495dcf6512d",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCo86stByUeD+zA\nvziK7z+/ceTmgmSi1xT3SQJLc1ws+qJDHi8HG3WI++ibRwnU9mPQhweQlef/9Oyk\n99WTZOfnKp56Whlbd2P10TJnUiwsBBrhRWRc2+AOnBB+ijmzYwXgvHBxJI33XTK2\n0PryaR+jv/TUJF38TCWyhDSJ2rGhEGa6pFmcHyia8p/s6LTdcm85k5NyA2GqNzqh\nLx3EfenfZSon5Hg90aDwpGv85rRpJKb8Y74EtUkwKd5W3Gq/qYJ/a8+FrglhRfGh\nGFzsHxxJUBXV0q81X+OHPwYAO2X9EoT2FATcgr1gtUj+DdSEpzT6B4JtNyJ/MrPh\n3vkLkoP/AgMBAAECggEADyeQLqFJ8IjgJSfh1ACC2NLIA+8lRMADJu07EfZ+iaBP\nprKR6FLLt6ZU5ny4Qox5Ro6eHJd9sGVRRrjeRPLTpFYb0gC77ormgfmqSj9CLA6Q\nNK2rQ3MLhXP1PMx8QX173P06HsP3If2Pm3tiTxUj2+XPeanrbkKMTRdzuPvPXBF9\neF4/upMbstqVgoE62WdJpGb9jzo620Kl+WysIpNQkX1u/pQ0aex7rpAHGpNwp0y2\nBmAonsPIFRCZkU2nOQr/dWB9yTMjSZpTnReJSDRnmrunDyggHLRieZZWHgzStlFa\n1aU0ZL+AcSdtBB6GP+yh0g26ACHcierYPjBfBXDQIQKBgQDqstwDGgKL150jjpgR\nSWdi2Ft0UrR+yosMWRqhmlGf4uExIlqrMgnTp7QU6rlbqduq9/OLZKpk8ArLAFml\nw4JTqNzhf2UeC+siNgTLWAviyzarZD1VV3K4wrPw9XnWYMv05Hd4Tbnfr0TVBfaV\nRRSNd98nWUBl6g63YtIYKmplYQKBgQC4STRmPKiyMMfkyz2+ylIHzIRa3ION9Fug\nqJlTwz+Nj3hNawqNcBPEh5iVJRjY20VbFHpYQSIAMYvlxMQc5qFm3mY0bycrcrkm\nD8U6+MBLc0m97zwQmpm99oX/+C9sJ+OoTbTvPaLy32kV/UsILvbZTE7OiAE/BSF0\nGdEZU5wFXwKBgBXuWLjBeXNv1nM4I+WZoluONB2OjOc8LfodaWuoa/Aw1zIsL6TH\nrDtm9GDv/hoeqTQ0r0FbSsDb3WZSxg3DUy5WHS3FJcHFA1fTDGej9phevOEPINwU\nq9ev+fiON7BcozJjFvba7H+GdTwiroQMTHtbtDKNGINtd6qTRWaUsBSBAoGAGXh0\nt5S2tDotxp+YnyATimRn/q7vt9UIPQJQftVDmWs0825R/Q56jPU4z5RbBM35ngcM\nidomuuQeM9moSV5O/IrMkX6zaTvn/yy609XBriv3Cztfj+PuT+UczC4fT9GLk515\n3n8kYHEkcxeZIT5se8giNEVz9qPc5dETp2545/0CgYB0MRry4nAMyZtjJf3sI4q9\ntOaA3YFBnCnayEVv30jB7yjWYJYceHxHdBjtTBazpsfjpTARazC6PoCdjoo6y5dR\n+T5BBrxJxBlfw7UHcuKp5iSgkq9fi/AyrzScsS24eRBmu2jxiY2O7QslbZwXSQ0Z\ngJaKIcMoUu6qaBSaQZsAkw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "data-uploader@tokyo-scholar-464119-b4.iam.gserviceaccount.com",
+  "client_id": "108495776589142388378",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/data-uploader%40tokyo-scholar-464119-b4.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

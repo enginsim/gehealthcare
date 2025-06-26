@@ -16,19 +16,14 @@ MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB")
 MONGO_COLLECTION = "allianz_data"
 
-def get_previous_quarter(date=None):
+def get_current_quarter(date=None):
     if date is None:
         date = datetime.today()
     
     current_quarter = (date.month - 1) // 3 + 1
-    if current_quarter == 1:
-        prev_quarter = 4
-        year = date.year - 1
-    else:
-        prev_quarter = current_quarter - 1
-        year = date.year
+    year = date.year
 
-    return f"{year}Q{prev_quarter}"
+    return f"{year}Q{current_quarter}"
 
 def download_pdf_with_selenium(pdf_url, download_folder="data/raw"):
     os.makedirs(download_folder, exist_ok=True)
@@ -133,7 +128,7 @@ def get_allianz_last_available_info():
 
 def get_allianz_data():
 
-    prev_quarter = get_previous_quarter()
+    current_quarter = get_current_quarter()
     d = {}
     d["2025Q1"] = ["Country_Risk_Ratings_March_2025_Q1_final.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq1-2025/Country_Risk_Ratings_March_2025_Q1_final.pdf"]
     d["2024Q1"] = ["Q12024countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq12024/Q12024countryriskratings-EXT.pdf"]
@@ -147,8 +142,8 @@ def get_allianz_data():
     d["2022Q4"] = ["Q42022countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
     d["2024Q2"] = ["Q22022countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
     
-    if prev_quarter not in d:
-        d[prev_quarter] = get_allianz_last_available_info()
+    if current_quarter not in d:
+        d[current_quarter] = get_allianz_last_available_info()
     
     for year_quarter, (pdf_name, pdf_url) in d.items():
         try:

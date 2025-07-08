@@ -33,7 +33,7 @@ def get_countryeconomy_country_list():
     df.to_csv("countryeconomy_distinct_countries.csv", index=False)
 
 def get_countries():
-    url = "https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.csv"
+    url = "https://raw.githubusercontent.com/lico27/data-projects/refs/heads/main/iso-countries.csv"
     resp = requests.get(url)
     resp.raise_for_status()
     df = pd.read_csv(StringIO(resp.text))

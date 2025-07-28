@@ -3,11 +3,16 @@ import zipfile
 import requests
 import pandas as pd
 from pymongo import MongoClient
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB")
 MONGO_COLLECTION = "worldbank_data"
+
+SERVICE_ACCOUNT_FILE = 'tokyo-scholar-464119-b4-6a8fa808f85e.json' 
+SPREADSHEET_NAME = 'worldbank_data' 
 
 def extract_file_to_mongodb(filepath, mongo_uri, db_name, collection_name="worldbank_data"):
     try:
@@ -79,3 +84,39 @@ def download_and_extract_data(url, extract_to="data/raw"):
 def get_worldbank_data():
     url = "https://www.worldbank.org/content/dam/sites/govindicators/doc/wgidataset_excel.zip"
     download_and_extract_data(url)
+    write_to_drive()
+
+def write_to_drive():
+    try:
+        df = get_data_from_db()
+            
+        max_quarters = df.groupby("countryname")["year"].transform("max")
+        df["most_recent"] = (df["year"] == max_quarters).astype(int)
+       
+        
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, scope)
+        client_gs = gspread.authorize(creds)
+        try:
+            sheet = client_gs.open(SPREADSHEET_NAME)
+        except gspread.SpreadsheetNotFound:
+            sheet = client_gs.create(SPREADSHEET_NAME)
+
+        worksheet = sheet.get_worksheet(0)
+        worksheet.clear()
+        worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+def get_data_from_db():
+    client = MongoClient(MONGO_URI)
+    db = client[MONGO_DB]
+    collection = db[MONGO_COLLECTION]
+
+    data = list(collection.find())
+    df = pd.DataFrame(data)
+
+    if "_id" in df.columns:
+        df = df.drop(columns=["_id"])
+    return df

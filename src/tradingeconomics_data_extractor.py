@@ -4,10 +4,14 @@ import pandas as pd
 import os
 import time
 from pymongo import MongoClient, UpdateOne
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB")
 MONGO_COLLECTION = "tradingeconomics_data"
+SERVICE_ACCOUNT_FILE = 'tokyo-scholar-464119-b4-6a8fa808f85e.json' 
+SPREADSHEET_NAME = 'tradingeconomics_data' 
 
 def get_countries(base_url="https://tradingeconomics.com/country-list/rating"):
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -97,9 +101,50 @@ def get_tradingeconomics_data():
 
     if operations:
         result = collection.bulk_write(operations, ordered=False)
+        write_to_drive()
         print("Operation completed")
     else:
         print("No operations to perform.")
+
+def write_to_drive():
+    try:
+        df = get_data_from_db()
+        
+            
+        max_date = df.groupby(["Country","Agency"])["Date"].transform("max")
+        df["most_recent"] = (df["Date"] == max_date).astype(int)
+        df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
+        
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, scope)
+        client_gs = gspread.authorize(creds)
+        try:
+            sheet = client_gs.open(SPREADSHEET_NAME)
+        except gspread.SpreadsheetNotFound:
+            sheet = client_gs.create(SPREADSHEET_NAME)
+
+        worksheet = sheet.get_worksheet(0)
+        worksheet.clear()
+        worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+def get_data_from_db():
+    client = MongoClient(MONGO_URI)
+    db = client[MONGO_DB]
+    collection = db[MONGO_COLLECTION]
+
+    data = list(collection.find())
+    df = pd.DataFrame(data)
+
+    if "_id" in df.columns:
+        df = df.drop(columns=["_id"])
+   
+    df["Date"] = pd.to_datetime(df["Date"], format="%b %d %Y")
+
+    return df
+
 
 def get_country_code(name):
     country_code ={

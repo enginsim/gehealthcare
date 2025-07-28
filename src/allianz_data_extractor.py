@@ -4,6 +4,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime
 import pdfplumber
@@ -11,10 +12,18 @@ import pandas as pd
 import os
 import time
 from pymongo import MongoClient
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+
 
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB")
 MONGO_COLLECTION = "allianz_data"
+
+SERVICE_ACCOUNT_FILE = 'tokyo-scholar-464119-b4-6a8fa808f85e.json' 
+SPREADSHEET_NAME = 'allianz_data' 
+
 
 def get_current_quarter(date=None):
     if date is None:
@@ -26,23 +35,25 @@ def get_current_quarter(date=None):
     return f"{year}Q{current_quarter}"
 
 def download_pdf_with_selenium(pdf_url, download_folder="data/raw"):
-    os.makedirs(download_folder, exist_ok=True)
+    try:
+        os.makedirs(download_folder, exist_ok=True)
 
-    options = Options()
-    options.add_experimental_option("prefs", {
-        "download.default_directory": os.path.abspath(download_folder),
-        "download.prompt_for_download": False,
-        "plugins.always_open_pdf_externally": True
-    })
-    #options.add_argument("--headless") # allianz reject the request when this option given
-    options.add_argument("--disable-gpu")
+        options = Options()
+        options.add_experimental_option("prefs", {
+            "download.default_directory": os.path.abspath(download_folder),
+            "download.prompt_for_download": False,
+            "plugins.always_open_pdf_externally": True
+        })
+        #options.add_argument("--headless") # allianz reject the request when this option given
+        options.add_argument("--disable-gpu")
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver.get(pdf_url)
+        time.sleep(10) #we need this to give time to browser to download file
 
-    driver = webdriver.Chrome(options=options)
-    driver.get(pdf_url)
-    time.sleep(10) #we need this to give time to browser to download file
-
-    driver.quit()
-
+        driver.quit()
+    except Exception as e:
+        print(f"Error: {e}")
+        return
 
 def extract_pdf_to_mongodb(pdf_path, mongo_uri, db_name, collection_name="allianz_data", year_quarter="2025Q2"):
     data = []
@@ -94,38 +105,39 @@ def extract_pdf_to_mongodb(pdf_path, mongo_uri, db_name, collection_name="allian
     finally:
         client.close()
 
+
 def get_allianz_last_available_info():
-    options = Options()
-    options.headless = True  # Set to False to debug with UI
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=options)
-    base_url = "https://www.allianz.com"
-    main_url = f"{base_url}/en/economic_research/country-and-sector-risk/country-risk.html"
-    driver.get(main_url)
-
-    result = []
-
+    url = "https://www.allianz.com/en/economic_research/country-and-sector-risk/country-risk.html"
+    driver = None
     try:
-        
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "a[href$='.pdf']"))
-        )
+        options = Options()
+        options.add_argument("--disable-gpu")
+        options.add_argument("--headless") 
 
-        pdf_link_element = driver.find_element(By.CSS_SELECTOR, "a[href$='.pdf']")
-        pdf_href = pdf_link_element.get_attribute("href")
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver.get(url)
 
-        if pdf_href:
-            filename = pdf_href.split("/")[-1]
-            result = [filename, pdf_href]
-        
+        wait = WebDriverWait(driver, 20)
+        target_box = wait.until(EC.presence_of_element_located(
+            (By.XPATH, "//h3[contains(., 'Country Risk Rating')]/ancestor::div[contains(@class, 'c-teaser')]")
+        ))
+        pdf_link_element = target_box.find_element(By.XPATH, ".//a[contains(@href, '.pdf')]")
+        return pdf_link_element.get_attribute("href")
 
+    except TimeoutException:
+        print("Timeout: Could not find the Country Risk Rating link.")
+        return None
+    except WebDriverException as e:
+        print(f"WebDriver error: {e}")
+        return None
     except Exception as e:
-        print(e)
+        print(f"Unexpected error: {e}")
+        return None
     finally:
-        driver.quit()
+        if driver:
+            driver.quit()
 
-    return result
-
+   
 def get_allianz_data():
 
     current_quarter = get_current_quarter()
@@ -140,10 +152,14 @@ def get_allianz_data():
     d["2023Q3"] = ["Q32023countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
     d["2023Q4"] = ["Q42023countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
     d["2022Q4"] = ["Q42022countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
-    d["2024Q2"] = ["Q22022countryriskratings-EXT.pdf","https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq22024/Q22024countryriskratings-EXT.pdf"]
-    
+   
+    d["2025Q2"] = ['Country_Risk_Ratings_June_2025_Q2.pdf', 'https://www.allianz.com/content/dam/onemarketing/azcom/Allianz_com/economic-research/country-risk/updateq2-2025/Country_Risk_Ratings_June_2025_Q2.pdf']
     if current_quarter not in d:
-        d[current_quarter] = get_allianz_last_available_info()
+        pdf_url = get_allianz_last_available_info()
+        if pdf_url:
+            pdf_name = pdf_url.split("/")[-1] 
+            d[current_quarter] = [pdf_name, pdf_url]
+
     
     for year_quarter, (pdf_name, pdf_url) in d.items():
         try:
@@ -155,6 +171,50 @@ def get_allianz_data():
             time.sleep(2)
         except Exception as e:
             print(f"Error {year_quarter}: {e}")
+
+def write_to_drive():
+    try:
+        df = get_data_from_db()
+        df["sort_key"] = df["year_quarter"].apply(quarter_to_sort_key)
+            
+        max_quarters = df.groupby("country")["sort_key"].transform("max")
+        df["most_recent"] = (df["sort_key"] == max_quarters).astype(int)
+        df.drop(columns=["sort_key"], inplace=True)
+        
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, scope)
+        client_gs = gspread.authorize(creds)
+        try:
+            sheet = client_gs.open(SPREADSHEET_NAME)
+        except gspread.SpreadsheetNotFound:
+            sheet = client_gs.create(SPREADSHEET_NAME)
+
+        worksheet = sheet.get_worksheet(0)
+        worksheet.clear()
+        worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+def get_data_from_db():
+    client = MongoClient(MONGO_URI)
+    db = client[MONGO_DB]
+    collection = db[MONGO_COLLECTION]
+
+    data = list(collection.find())
+    df = pd.DataFrame(data)
+
+    if "_id" in df.columns:
+        df = df.drop(columns=["_id"])
+    return df
+
+def quarter_to_sort_key(yq):
+        year, quarter = yq.split("Q")
+        return int(year) * 10 + int(quarter)  
+
+def sync_allianz_data():
+    get_allianz_data()
+    write_to_drive()
 
 def get_country_code(name):
     country_code = {

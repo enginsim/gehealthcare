@@ -46,8 +46,8 @@ def get_countries():
     db = client[MONGO_DB]
     col = db[MONGO_COLLECTION]
 
-    # col.delete_many({})
-    # col.insert_many(records)
+    col.delete_many({})
+    col.insert_many(records)
 
     print(f"Processed {len(records)} records.")
 

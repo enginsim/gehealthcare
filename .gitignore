@@ -36,3 +36,4 @@ dist/
 .DS_Store  # macOS
 Thumbs.db  # Windows
 .DS_Store
+.DS_Store

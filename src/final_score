@@ -168,7 +168,7 @@ class MongoAggregateScorer:
         return pipeline
     
     def calculate_and_update_scores(self) -> Dict:
-        """Aggregate pipeline kullanarak skorları hesapla ve güncelle"""
+        """Calculate and update the scores using the aggregate pipeline"""
         
         print("\n🔄 Running aggregate pipeline to calculate overall final scores...")
         

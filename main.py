@@ -4,15 +4,16 @@ from src.oecd_data_extractor import OECDDataFetcher
 from src.worldbank_data_extractor import get_worldbank_data
 from src.countryeconomy_data_extractor import get_country_economy_data
 from src.country_names_extractor import get_countries
-
+from src.country_score import write_to_drive
 def main():
-    fetcher = OECDDataFetcher()
-    get_worldbank_data()
-    get_country_economy_data()
-    sync_allianz_data()
-    get_tradingeconomics_data()
-    fetcher.get_oecd_data()
-    get_countries()
+    #fetcher = OECDDataFetcher()
+    #get_worldbank_data()
+    #get_country_economy_data()
+    #sync_allianz_data()
+    #get_tradingeconomics_data()
+    #fetcher.get_oecd_data()
+    #get_countries()
+    write_to_drive()
     print("Completed")
 
 
